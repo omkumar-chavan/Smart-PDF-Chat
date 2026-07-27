@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import {
   Bot,
   User,
@@ -6,10 +11,8 @@ import {
   Check,
 } from "lucide-react";
 
-import ReactMarkdown from "react-markdown";
+import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
-import { useTheme } from "../hooks/useTheme.jsx";
 
 
 function ChatBox({
@@ -17,11 +20,10 @@ function ChatBox({
   loading,
 }) {
 
+
   const bottomRef = useRef(null);
 
   const [copied, setCopied] = useState(null);
-
-  const { dark } = useTheme();
 
 
 
@@ -36,18 +38,23 @@ function ChatBox({
 
 
 
-  const copyMessage = async (text, index) => {
 
-    await navigator.clipboard.writeText(
-      String(text || "")
-    );
+  const copyText = async(text,index)=>{
+
+    if(!text) return;
+
+
+    await navigator.clipboard.writeText(text);
+
 
     setCopied(index);
 
 
-    setTimeout(() => {
+    setTimeout(()=>{
+
       setCopied(null);
-    }, 2000);
+
+    },2000);
 
   };
 
@@ -57,34 +64,29 @@ function ChatBox({
   return (
 
     <div
-      className={`
+      className="
         flex-1
         overflow-y-auto
         rounded-3xl
         p-6
-
-        ${
-          dark
-          ? "bg-slate-950"
-          : "bg-slate-50"
-        }
-
-      `}
+        bg-slate-50
+        dark:bg-slate-950
+        transition-colors
+        duration-300
+      "
     >
 
 
-
       {
-        messages.length === 0 &&
-        !loading && (
+        messages.length === 0 && !loading && (
 
           <div
             className="
               h-full
               flex
               flex-col
-              justify-center
               items-center
+              justify-center
               text-center
             "
           >
@@ -92,6 +94,7 @@ function ChatBox({
             <div
               className="
                 bg-blue-100
+                dark:bg-blue-950
                 p-5
                 rounded-full
                 mb-5
@@ -107,37 +110,25 @@ function ChatBox({
 
 
             <h2
-              className={`
+              className="
                 text-2xl
                 font-bold
-
-                ${
-                  dark
-                  ? "text-white"
-                  : "text-slate-900"
-                }
-
-              `}
+                text-slate-900
+                dark:text-white
+              "
             >
-              Smart PDF Chat
+              Smart PDF AI
             </h2>
 
 
             <p
-              className={`
+              className="
                 mt-2
-                max-w-md
-
-                ${
-                  dark
-                  ? "text-slate-400"
-                  : "text-slate-500"
-                }
-
-              `}
+                text-slate-500
+                dark:text-slate-400
+              "
             >
-              Upload your PDF and ask
-              questions about your document.
+              Upload PDF and ask questions.
             </p>
 
 
@@ -154,35 +145,22 @@ function ChatBox({
 
 
         {
-          messages.map((msg, index) => (
+          messages.map((msg,index)=>{
 
-            <div
-              key={index}
-              className={`
-                flex
 
-                ${
-                  msg.role === "user"
-                  ? "justify-end"
-                  : "justify-start"
-                }
+            const text = msg.text || "No response received.";
 
-              `}
-            >
 
+            return (
 
               <div
+                key={index}
                 className={`
                   flex
-                  gap-3
-                  max-w-[85%]
-
-                  ${
-                    msg.role === "user"
-                    ? "flex-row-reverse"
-                    : ""
+                  ${msg.role==="user"
+                    ? "justify-end"
+                    : "justify-start"
                   }
-
                 `}
               >
 
@@ -190,179 +168,194 @@ function ChatBox({
 
                 <div
                   className={`
-                    w-11
-                    h-11
-                    rounded-full
                     flex
-                    items-center
-                    justify-center
+                    gap-3
+                    max-w-[85%]
 
                     ${
-                      msg.role === "user"
-                      ? "bg-blue-600"
-                      : "bg-indigo-600"
+                      msg.role==="user"
+                      ? "flex-row-reverse"
+                      : ""
                     }
-
-                  `}
-                >
-
-                  {
-                    msg.role === "user"
-
-                    ?
-
-                    <User
-                      size={20}
-                      className="text-white"
-                    />
-
-                    :
-
-                    <Bot
-                      size={20}
-                      className="text-white"
-                    />
-
-                  }
-
-                </div>
-
-
-
-
-
-                <div
-                  className={`
-                    rounded-3xl
-                    px-5
-                    py-4
-                    shadow-md
-
-                    ${
-                      msg.role === "user"
-
-                      ?
-
-                      "bg-blue-600 text-white"
-
-                      :
-
-                      dark
-
-                      ?
-
-                      "bg-slate-800 text-white"
-
-                      :
-
-                      "bg-white text-slate-900 border"
-
-                    }
-
                   `}
                 >
 
 
-                  <p
-                    className="
-                      text-xs
-                      font-semibold
-                      mb-3
-                      opacity-70
-                    "
+
+                  <div
+                    className={`
+                      h-11
+                      w-11
+                      rounded-full
+                      flex
+                      items-center
+                      justify-center
+                      shrink-0
+
+                      ${
+                        msg.role==="user"
+                        ? "bg-blue-600"
+                        : "bg-slate-800"
+                      }
+                    `}
                   >
 
                     {
-                      msg.role === "user"
-                      ? "You"
-                      : "Smart PDF AI"
+                      msg.role==="user"
+
+                      ?
+
+                      <User
+                        size={20}
+                        className="text-white"
+                      />
+
+                      :
+
+                      <Bot
+                        size={20}
+                        className="text-white"
+                      />
+
                     }
 
-                  </p>
+                  </div>
 
 
 
 
-                  {
-                    msg.role === "ai"
-
-                    ?
-
-                    <ReactMarkdown
-                      remarkPlugins={[
-                        remarkGfm
-                      ]}
-                    >
-
-                      {String(msg.text || "")}
-
-                    </ReactMarkdown>
 
 
-                    :
+                  <div
+                    className={`
+                      rounded-2xl
+                      px-5
+                      py-4
+                      shadow
 
-                    <p
+                      ${
+                        msg.role==="user"
+
+                        ?
+
+                        "bg-blue-600 text-white"
+
+                        :
+
+                        "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+
+                      }
+                    `}
+                  >
+
+
+
+                    <div
                       className="
-                        whitespace-pre-wrap
-                        leading-7
+                        flex
+                        justify-between
+                        items-center
+                        mb-2
                       "
                     >
 
-                      {msg.text}
 
-                    </p>
-
-                  }
-
-
-
-
-
-
-                  {
-                    msg.role === "ai" && (
-
-                      <button
-                        onClick={() =>
-                          copyMessage(
-                            msg.text,
-                            index
-                          )
-                        }
-
-                        className="
-                          mt-4
-                          flex
-                          items-center
-                          gap-2
-                          text-xs
-                          opacity-70
-                        "
+                      <span
+                        className="font-semibold text-sm"
                       >
 
                         {
-                          copied === index
-
+                          msg.role==="user"
                           ?
-
-                          <>
-                            <Check size={14}/>
-                            Copied
-                          </>
-
+                          "You"
                           :
-
-                          <>
-                            <Copy size={14}/>
-                            Copy
-                          </>
-
+                          "Smart PDF AI"
                         }
 
-                      </button>
+                      </span>
 
-                    )
-                  }
+
+
+
+                      {
+                        msg.role==="ai" && (
+
+                          <button
+                            onClick={()=>
+                              copyText(
+                                text,
+                                index
+                              )
+                            }
+
+                            className="
+                              ml-4
+                              text-slate-500
+                              dark:text-slate-300
+                            "
+                          >
+
+                            {
+                              copied===index
+                              ?
+                              <Check size={16}/>
+                              :
+                              <Copy size={16}/>
+                            }
+
+                          </button>
+
+                        )
+                      }
+
+
+
+                    </div>
+
+
+
+
+
+
+                    {
+                      msg.role==="ai"
+
+                      ?
+
+                      <div
+                        className="
+                          prose
+                          dark:prose-invert
+                          max-w-none
+                        "
+                      >
+
+                        <Markdown
+                          remarkPlugins={[
+                            remarkGfm
+                          ]}
+                        >
+                          {String(text)}
+                        </Markdown>
+
+
+                      </div>
+
+
+                      :
+
+
+                      <p className="whitespace-pre-wrap">
+                        {text}
+                      </p>
+
+
+                    }
+
+
+
+                  </div>
+
 
 
 
@@ -372,12 +365,11 @@ function ChatBox({
 
               </div>
 
+            );
 
-            </div>
-
-          ))
-
+          })
         }
+
 
 
 
@@ -386,19 +378,15 @@ function ChatBox({
         {
           loading && (
 
-            <div
-              className="
-                flex
-                gap-3
-              "
-            >
+            <div className="flex gap-3">
+
 
               <div
                 className="
-                  w-11
                   h-11
+                  w-11
                   rounded-full
-                  bg-indigo-600
+                  bg-slate-800
                   flex
                   items-center
                   justify-center
@@ -413,22 +401,23 @@ function ChatBox({
               </div>
 
 
+
               <div
-                className={`
+                className="
+                  rounded-2xl
                   px-5
                   py-4
-                  rounded-3xl
-
-                  ${
-                    dark
-                    ? "bg-slate-800 text-white"
-                    : "bg-white"
-                  }
-
-                `}
+                  bg-white
+                  dark:bg-slate-800
+                  border
+                  border-slate-200
+                  dark:border-slate-700
+                  text-slate-900
+                  dark:text-white
+                "
               >
 
-                Thinking...
+                Smart PDF AI typing...
 
               </div>
 
@@ -437,7 +426,6 @@ function ChatBox({
 
           )
         }
-
 
 
 

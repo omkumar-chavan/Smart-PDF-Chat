@@ -2,24 +2,26 @@ import {
   Send,
 } from "lucide-react";
 
-import { useTheme } from "../hooks/useTheme.jsx";
 
 
 function ChatInput({
+
   question,
   setQuestion,
   askQuestion,
+
 }) {
 
 
-  const { dark } = useTheme();
 
+  const handleKeyDown = (e)=>{
 
+    if(
+      e.key === "Enter" &&
+      !e.shiftKey
+    ){
 
-
-  const handleKeyDown = (e) => {
-
-    if (e.key === "Enter") {
+      e.preventDefault();
 
       askQuestion();
 
@@ -33,86 +35,123 @@ function ChatInput({
 
   return (
 
+
     <div
-      className={`
-        border-t
-        pt-4
-        transition
 
-        ${
-          dark
-          ?
-          "border-slate-700"
-          :
-          "border-slate-200"
-        }
+      className="
 
-      `}
+      mt-4
+
+      rounded-3xl
+
+      border
+
+
+      bg-white
+
+      dark:bg-slate-900
+
+
+      border-slate-200
+
+      dark:border-slate-700
+
+
+      p-3
+
+
+      transition-colors
+
+      duration-300
+
+      "
+
     >
 
 
 
+
+
       <div
-        className={`
-          flex
-          items-center
-          gap-3
-          rounded-2xl
-          p-2
-          border
-          transition
 
-          ${
-            dark
-            ?
-            "bg-slate-800 border-slate-700"
-            :
-            "bg-white border-slate-300"
-          }
+        className="
 
-        `}
+        flex
+
+        items-center
+
+        gap-3
+
+        "
+
       >
 
 
 
 
 
-        <input
-
-          type="text"
+        <textarea
 
           value={question}
 
-          placeholder="Ask anything from your PDF..."
-
           onChange={(e)=>
-            setQuestion(
-              e.target.value
-            )
+            setQuestion(e.target.value)
           }
 
           onKeyDown={handleKeyDown}
 
-          className={`
-            flex-1
-            bg-transparent
-            px-4
-            py-3
-            outline-none
-            text-sm
 
-            ${
-              dark
-              ?
-              "text-white placeholder:text-slate-400"
-              :
-              "text-slate-900 placeholder:text-slate-500"
-            }
+          placeholder="Ask something about your PDF..."
 
-          `}
+
+          rows={1}
+
+
+          className="
+
+          flex-1
+
+          resize-none
+
+
+          rounded-2xl
+
+          px-4
+
+          py-3
+
+
+          outline-none
+
+
+          bg-slate-100
+
+          dark:bg-slate-800
+
+
+          text-slate-900
+
+          dark:text-white
+
+
+          placeholder:text-slate-500
+
+          dark:placeholder:text-slate-400
+
+
+          border
+
+          border-transparent
+
+
+          focus:border-blue-500
+
+
+          transition
+
+          "
 
         />
-
 
 
 
@@ -123,31 +162,40 @@ function ChatInput({
 
           onClick={askQuestion}
 
-          disabled={!question.trim()}
 
           className="
-            flex
-            items-center
-            justify-center
-            gap-2
-            bg-blue-600
-            hover:bg-blue-700
-            disabled:bg-slate-400
-            text-white
-            px-5
-            py-3
-            rounded-xl
-            font-semibold
-            transition
+
+          h-12
+
+          w-12
+
+
+          rounded-2xl
+
+
+          flex
+
+          items-center
+
+          justify-center
+
+
+
+          bg-blue-600
+
+          hover:bg-blue-700
+
+
+          text-white
+
+
+          transition
+
           "
 
         >
 
-          <Send
-            size={18}
-          />
-
-          Send
+          <Send size={20}/>
 
 
         </button>
@@ -163,11 +211,39 @@ function ChatInput({
 
 
 
+      <p
+
+        className="
+
+        text-xs
+
+        mt-2
+
+        ml-2
+
+
+        text-slate-500
+
+        dark:text-slate-400
+
+        "
+
+      >
+
+        Press Enter to send
+
+      </p>
+
+
+
+
     </div>
+
 
   );
 
 }
+
 
 
 export default ChatInput;

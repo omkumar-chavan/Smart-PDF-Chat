@@ -1,17 +1,17 @@
-import os
-from pathlib import Path
-
 import cv2
 import numpy as np
 import pytesseract
 
 from pathlib import Path
+from typing import List, Dict
+
 from pypdf import PdfReader
 from pdf2image import convert_from_path
 from loguru import logger
 
 
 POPPLER_PATH = r"C:\poppler\poppler-26.02.0\Library\bin"
+
 pytesseract.pytesseract.tesseract_cmd = (
     r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 )
@@ -19,35 +19,30 @@ pytesseract.pytesseract.tesseract_cmd = (
 
 def preprocess_image(image):
     """
-    Prepare PDF image for OCR.
-    Handles PIL image conversion and preprocessing.
+    Preprocess image for OCR.
     """
 
-    # PIL Image -> numpy array
     img = np.array(image)
 
-    # RGB/RGBA -> Gray
     if len(img.shape) == 3:
         img = cv2.cvtColor(
             img,
             cv2.COLOR_RGB2GRAY
         )
 
-    # Remove noise
     img = cv2.medianBlur(
         img,
         3
     )
 
-    # Improve contrast
     img = cv2.adaptiveThreshold(
-    img,
-    255,
-    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-    cv2.THRESH_BINARY,
-    31,
-    10
-)
+        img,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        31,
+        10
+    )
 
     return img
 
@@ -55,34 +50,39 @@ def preprocess_image(image):
 
 def extract_text_from_pdf(
     file_path: str
-) -> str:
+) -> List[Dict]:
     """
-    Extract text from any PDF.
+    Extract PDF text page wise.
 
-    Pipeline:
-    1. Try normal PDF text extraction
-    2. If no text found -> OCR
-    3. Supports scanned/cropped PDFs
+    Returns:
+    [
+        {
+            "page": 1,
+            "text": "content"
+        }
+    ]
     """
 
     pdf_path = Path(file_path)
 
     if not pdf_path.exists():
+
         raise RuntimeError(
-            f"PDF file not found: {file_path}"
+            f"PDF not found: {file_path}"
         )
+
+
+    pages = []
+
 
     logger.info(
         f"Processing PDF: {pdf_path.name}"
     )
 
 
-    text = ""
-
-
-    # ----------------------------
-    # Method 1: Normal PDF Text
-    # ----------------------------
+    # -------------------------
+    # Normal PDF extraction
+    # -------------------------
 
     try:
 
@@ -90,38 +90,47 @@ def extract_text_from_pdf(
             str(pdf_path)
         )
 
-        for page in reader.pages:
 
-            page_text = page.extract_text()
+        for index, page in enumerate(
+            reader.pages
+        ):
 
-            if page_text:
-                text += page_text + "\n"
+            text = page.extract_text() or ""
 
 
-    except Exception as e:
+            if text.strip():
+
+                pages.append(
+                    {
+                        "page": index + 1,
+                        "text": text.strip()
+                    }
+                )
+
+
+    except Exception as error:
 
         logger.warning(
-            f"Normal extraction failed: {e}"
+            f"PDF extraction failed: {error}"
         )
 
 
-    # If readable text exists
-    if len(text.strip()) > 50:
+    if pages:
 
         logger.success(
-            f"Extracted {len(text)} characters using PDF parser"
+            f"Extracted {len(pages)} pages using PDF parser"
         )
 
-        return text
+        return pages
 
 
 
-    # ----------------------------
-    # Method 2: OCR
-    # ----------------------------
+    # -------------------------
+    # OCR fallback
+    # -------------------------
 
     logger.info(
-        "No readable text found. Starting OCR..."
+        "Starting OCR extraction"
     )
 
 
@@ -137,7 +146,7 @@ def extract_text_from_pdf(
         for index, image in enumerate(images):
 
             logger.info(
-                f"OCR page {index + 1}"
+                f"OCR processing page {index+1}"
             )
 
 
@@ -146,38 +155,43 @@ def extract_text_from_pdf(
             )
 
 
-            page_text = pytesseract.image_to_string(
+            text = pytesseract.image_to_string(
                 processed,
                 config="--psm 11"
             )
 
 
-            text += page_text + "\n"
+            if text.strip():
+
+                pages.append(
+                    {
+                        "page": index + 1,
+                        "text": text.strip()
+                    }
+                )
 
 
+    except Exception as error:
 
-    except Exception as e:
-
-        logger.error(
-            f"OCR failed: {e}"
+        logger.exception(
+            f"OCR failed: {error}"
         )
 
         raise RuntimeError(
-            f"OCR processing failed: {e}"
+            f"OCR failed: {error}"
         )
 
 
-
-    if len(text.strip()) == 0:
+    if not pages:
 
         raise RuntimeError(
-            "No text could be extracted from PDF"
+            "No readable text found in PDF"
         )
 
 
     logger.success(
-        f"OCR extracted {len(text)} characters"
+        f"OCR extracted {len(pages)} pages"
     )
 
 
-    return text
+    return pages

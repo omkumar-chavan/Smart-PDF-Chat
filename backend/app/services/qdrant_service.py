@@ -1,66 +1,209 @@
-from qdrant_client import QdrantClient
-from qdrant_client.models import (
-    Distance,
-    VectorParams,
-    PointStruct,
+from typing import List, Dict
+
+from fastapi import (
+    APIRouter,
+    HTTPException
 )
 
-client = QdrantClient(
-    host="localhost",
-    port=6333,
+from pydantic import (
+    BaseModel,
+    Field
 )
 
-COLLECTION = "smart_pdf_chat"
+from loguru import logger
 
 
-def create_collection():
+from app.services.vector_service import (
+    search_similar_chunks
+)
 
-    collections = client.get_collections().collections
+from app.services.llm_service import (
+    ask_llm
+)
 
-    names = [c.name for c in collections]
 
-    if COLLECTION not in names:
 
-        client.create_collection(
-            collection_name=COLLECTION,
-            vectors_config=VectorParams(
-                size=768,
-                distance=Distance.COSINE,
-            ),
+router = APIRouter(
+
+    prefix="/chat",
+
+    tags=["Chat"]
+
+)
+
+
+
+
+class ChatRequest(BaseModel):
+
+    question: str = Field(
+
+        ...,
+
+        min_length=3,
+
+        description="User question"
+
+    )
+
+
+
+
+
+class Source(BaseModel):
+
+    filename: str | None = None
+
+    page: int | None = None
+
+
+
+
+
+class ChatResponse(BaseModel):
+
+    question: str
+
+    answer: str
+
+    sources: List[Source]
+
+
+
+
+
+
+@router.post(
+    "/",
+    response_model=ChatResponse
+)
+async def chat(
+    request: ChatRequest
+):
+
+    try:
+
+
+        question = request.question.strip()
+
+
+
+        logger.info(
+
+            f"Chat query received: {question}"
+
         )
 
 
-def store_vectors(chunks, vectors):
 
-    create_collection()
 
-    points = []
+        # Search relevant chunks
 
-    for i, (chunk, vector) in enumerate(zip(chunks, vectors)):
+        results = search_similar_chunks(
 
-        points.append(
-            PointStruct(
-                id=i,
-                vector=vector,
-                payload={
-                    "text": chunk
+            question,
+
+            limit=4
+
+        )
+
+
+
+
+        if not results:
+
+
+            return {
+
+                "question": question,
+
+                "answer":
+                    "No relevant information found in uploaded documents.",
+
+                "sources": []
+
+            }
+
+
+
+
+
+        context = "\n\n".join(
+
+            item["text"]
+
+            for item in results
+
+        )
+
+
+
+
+        # Generate answer
+
+        answer = ask_llm(
+
+            context,
+
+            question
+
+        )
+
+
+
+
+        sources = []
+
+
+        for item in results:
+
+            sources.append(
+
+                {
+
+                    "filename":
+                        item.get("filename"),
+
+                    "page":
+                        item.get("page")
+
                 }
+
             )
+
+
+
+
+
+        return {
+
+            "question": question,
+
+            "answer": answer,
+
+            "sources": sources
+
+        }
+
+
+
+
+
+    except Exception as error:
+
+
+        logger.exception(
+
+            f"Chat processing failed: {error}"
+
         )
 
-    client.upsert(
-        collection_name=COLLECTION,
-        points=points,
-    )
 
 
-def search_vectors(query_vector, limit=5):
+        raise HTTPException(
 
-    result = client.query_points(
-        collection_name=COLLECTION,
-        query=query_vector,
-        limit=limit,
-        with_payload=True,
-    )
+            status_code=500,
 
-    return result.points
+            detail="Unable to process chat request."
+
+        )

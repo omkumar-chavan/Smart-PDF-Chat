@@ -1,36 +1,31 @@
-from typing import List
+from typing import List, Dict
 from uuid import uuid4
 
-from qdrant_client.http import models
 from loguru import logger
+from qdrant_client.http import models
 
 from app.database import get_qdrant_client
 from app.config import settings
-from app.services.embedding_service import (
-    create_embeddings,
-    embed_query
-)
+from app.services.embedding_service import embed_query
 
 
 
 def store_vectors(
     chunks: List[str],
-    embeddings_list: List[List[float]]
+    embeddings_list: List[List[float]],
+    metadata: List[Dict]
 ) -> int:
     """
-    Store document chunks and embeddings inside Qdrant.
+    Store document chunks with metadata inside Qdrant.
     """
 
-
     if not chunks:
-
         raise ValueError(
             "No chunks provided."
         )
 
 
     if not embeddings_list:
-
         raise ValueError(
             "No embeddings provided."
         )
@@ -43,15 +38,23 @@ def store_vectors(
         )
 
 
+    if len(chunks) != len(metadata):
+
+        raise ValueError(
+            "Chunks and metadata count mismatch."
+        )
+
+
     client = get_qdrant_client()
 
 
     points = []
 
 
-    for chunk, vector in zip(
+    for chunk, vector, info in zip(
         chunks,
-        embeddings_list
+        embeddings_list,
+        metadata
     ):
 
         points.append(
@@ -63,7 +66,9 @@ def store_vectors(
                 vector=vector,
 
                 payload={
-                    "text": chunk
+                    "text": chunk,
+                    "page": info.get("page"),
+                    "filename": info.get("filename")
                 }
 
             )
@@ -109,11 +114,10 @@ def store_vectors(
 def search_similar_chunks(
     question: str,
     limit: int = 4
-) -> List[str]:
+) -> List[Dict]:
     """
-    Search relevant document chunks from Qdrant.
+    Search relevant chunks with metadata.
     """
-
 
     if not question.strip():
 
@@ -150,15 +154,29 @@ def search_similar_chunks(
 
         for point in results.points:
 
+
             if point.payload and "text" in point.payload:
 
                 chunks.append(
-                    point.payload["text"]
+
+                    {
+                        "text": point.payload["text"],
+
+                        "page": point.payload.get(
+                            "page"
+                        ),
+
+                        "filename": point.payload.get(
+                            "filename"
+                        )
+                    }
+
                 )
 
 
+
         logger.info(
-            f"Retrieved {len(chunks)} relevant chunks"
+            f"Retrieved {len(chunks)} chunks"
         )
 
 
@@ -167,6 +185,7 @@ def search_similar_chunks(
 
 
     except Exception as error:
+
 
         logger.exception(
             f"Vector search failed: {error}"

@@ -1,9 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from loguru import logger
-
-from app.config import settings
-from app.database import health_check
 
 from app.routers import (
     pdf_router,
@@ -11,13 +7,8 @@ from app.routers import (
 )
 
 
-
 app = FastAPI(
-
-    title=settings.APP_NAME,
-
-    version="1.0.0"
-
+    title="Smart PDF Chat API"
 )
 
 
@@ -26,71 +17,22 @@ app.add_middleware(
 
     CORSMiddleware,
 
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
 
     allow_credentials=True,
 
-    allow_methods=["*"],
+    allow_methods=[
+        "*"
+    ],
 
-    allow_headers=["*"],
+    allow_headers=[
+        "*"
+    ]
 
 )
-
-
-
-@app.get("/")
-def home():
-
-    return {
-
-        "message": "Smart PDF Chat Backend Running"
-
-    }
-
-
-
-
-@app.get("/health")
-def health():
-
-    qdrant_status = health_check()
-
-
-    return {
-
-        "status": "healthy"
-        if qdrant_status
-        else "unhealthy",
-
-        "qdrant": qdrant_status
-
-    }
-
-
-
-
-@app.on_event("startup")
-async def startup_event():
-
-    logger.info(
-        "Starting Smart PDF Chat API"
-    )
-
-
-    try:
-
-        health_check()
-
-        logger.success(
-            "Database connection verified"
-        )
-
-
-    except Exception as error:
-
-        logger.warning(
-            f"Startup check failed: {error}"
-        )
 
 
 
@@ -103,3 +45,14 @@ app.include_router(
 app.include_router(
     chat_router.router
 )
+
+
+
+
+@app.get("/")
+def home():
+
+    return {
+        "message":
+        "Smart PDF Chat API running"
+    }

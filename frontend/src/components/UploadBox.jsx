@@ -2,36 +2,31 @@ import {
   Upload,
   FileText,
   CheckCircle,
-  Database,
-  Brain,
-  Cpu,
-  Loader2,
 } from "lucide-react";
 
-import { useTheme } from "../hooks/useTheme.jsx";
 
 
 function UploadBox({
+
   file,
   setFile,
   uploadPDF,
   uploading,
   uploadMessage,
+
 }) {
 
 
-  const { dark } = useTheme();
+
+  const handleFile = (e)=>{
+
+    const selected =
+      e.target.files[0];
 
 
+    if(selected){
 
-  const handleFile = (selectedFile) => {
-
-    if (
-      selectedFile &&
-      selectedFile.type === "application/pdf"
-    ) {
-
-      setFile(selectedFile);
+      setFile(selected);
 
     }
 
@@ -39,47 +34,88 @@ function UploadBox({
 
 
 
+
+
   return (
 
+
     <div
-      className={`
-        rounded-3xl
-        shadow-lg
-        border
-        p-6
-        h-full
-        transition
 
-        ${
-          dark
-          ?
-          "bg-slate-900 border-slate-700 text-white"
-          :
-          "bg-white border-slate-200 text-slate-900"
-        }
+      className="
 
-      `}
+      h-full
+
+      rounded-3xl
+
+      border
+
+      p-6
+
+
+      bg-white
+
+      dark:bg-slate-900
+
+
+      border-slate-200
+
+      dark:border-slate-700
+
+
+      text-slate-900
+
+      dark:text-white
+
+
+      transition-colors
+
+      duration-300
+
+      "
+
     >
 
 
 
 
 
-      {/* Header */}
+      <div
+
+        className="
+
+        flex
+
+        items-center
+
+        gap-3
+
+        mb-6
+
+        "
+
+      >
 
 
-      <div className="flex items-center gap-3 mb-6">
+        <div
 
+          className="
 
-        <div className="
-          bg-blue-100
+          bg-blue-600
+
           p-3
+
           rounded-2xl
-        ">
+
+          "
+
+        >
 
           <Upload
-            size={24}
-            className="text-blue-600"
+
+            size={22}
+
+            className="text-white"
+
           />
 
         </div>
@@ -89,28 +125,34 @@ function UploadBox({
         <div>
 
 
-          <h2 className="text-xl font-bold">
-            Documents
+          <h2 className="font-bold text-lg">
+
+            Upload PDF
+
           </h2>
 
 
           <p
-            className={`
-              text-sm
-              ${
-                dark
-                ?
-                "text-slate-400"
-                :
-                "text-slate-500"
-              }
-            `}
+
+            className="
+
+            text-sm
+
+            text-slate-500
+
+            dark:text-slate-400
+
+            "
+
           >
-            Upload PDF for AI analysis
+
+            Upload document for AI analysis
+
           </p>
 
 
         </div>
+
 
 
       </div>
@@ -121,86 +163,103 @@ function UploadBox({
 
 
 
-      {/* Upload Area */}
-
 
       <label
 
-        htmlFor="pdfUpload"
+        className="
 
-        className={`
-          flex
-          flex-col
-          items-center
-          justify-center
-          h-48
-          rounded-3xl
-          border-2
-          border-dashed
-          cursor-pointer
-          transition
+        cursor-pointer
 
-          ${
-            dark
+        block
 
-            ?
+        rounded-3xl
 
-            "border-slate-600 hover:bg-slate-800"
+        border-2
 
-            :
+        border-dashed
 
-            "border-slate-300 hover:bg-slate-50"
 
-          }
+        border-slate-300
 
-        `}
+        dark:border-slate-600
+
+
+        p-8
+
+        text-center
+
+
+        hover:bg-slate-50
+
+        dark:hover:bg-slate-800
+
+
+        transition
+
+        "
 
       >
 
 
-        <Upload
-          size={32}
-          className="text-blue-600 mb-4"
+
+        <FileText
+
+          size={40}
+
+          className="
+
+          mx-auto
+
+          mb-4
+
+          text-blue-600
+
+          "
+
         />
 
 
+
         <p className="font-semibold">
-          Drop your PDF here
+
+          Choose PDF file
+
         </p>
 
 
+
         <p
-          className={`
-            text-sm
-            ${
-              dark
-              ?
-              "text-slate-400"
-              :
-              "text-slate-500"
-            }
-          `}
+
+          className="
+
+          text-sm
+
+          mt-2
+
+
+          text-slate-500
+
+          dark:text-slate-400
+
+          "
+
         >
-          Click to browse
+
+          Click here to select
+
         </p>
 
 
 
         <input
 
-          id="pdfUpload"
-
           type="file"
 
           accept=".pdf"
 
-          className="hidden"
+          hidden
 
-          onChange={(e)=>
-            handleFile(
-              e.target.files[0]
-            )
-          }
+          onChange={handleFile}
 
         />
 
@@ -213,71 +272,244 @@ function UploadBox({
 
 
 
-      {/* Selected File */}
-
 
 
       {
         file && (
 
           <div
-            className={`
-              mt-5
-              p-4
-              rounded-2xl
-              border
 
-              ${
-                dark
-                ?
-                "bg-slate-800 border-slate-700"
-                :
-                "bg-slate-50 border-slate-200"
-              }
+            className="
 
-            `}
+            mt-5
+
+            rounded-2xl
+
+            p-4
+
+
+            bg-slate-50
+
+            dark:bg-slate-800
+
+            "
+
           >
 
 
-            <div className="flex gap-3">
+
+            <div
+
+              className="
+
+              flex
+
+              items-center
+
+              gap-3
+
+              "
+
+            >
 
 
               <FileText
-                size={28}
+
+                size={22}
+
                 className="text-red-500"
+
               />
 
 
-              <div className="min-w-0">
+
+              <div>
 
 
-                <p className="font-semibold truncate">
-                  {file.name}
+                <p className="font-semibold">
+
+                  Selected File
+
                 </p>
 
 
+
                 <p
-                  className={`
-                    text-sm
-                    ${
-                      dark
-                      ?
-                      "text-slate-400"
-                      :
-                      "text-slate-500"
-                    }
-                  `}
+
+                  className="
+
+                  text-sm
+
+                  truncate
+
+                  max-w-[200px]
+
+
+                  text-slate-500
+
+                  dark:text-slate-400
+
+                  "
+
                 >
 
-                  {(file.size / 1024 / 1024)
-                    .toFixed(2)} MB
-
-                  {" • Ready"}
+                  {file.name}
 
                 </p>
 
 
               </div>
+
+
+
+            </div>
+
+
+
+          </div>
+
+        )
+      }
+
+
+
+
+
+
+
+
+
+      <button
+
+        onClick={uploadPDF}
+
+        disabled={uploading}
+
+
+        className="
+
+        w-full
+
+        mt-6
+
+        rounded-2xl
+
+        py-3
+
+        font-semibold
+
+
+        bg-blue-600
+
+        hover:bg-blue-700
+
+
+        disabled:opacity-50
+
+
+        text-white
+
+
+        transition
+
+        "
+
+      >
+
+        {
+
+          uploading
+
+          ?
+
+          "Uploading..."
+
+          :
+
+          "Upload PDF"
+
+        }
+
+
+      </button>
+
+
+
+
+
+
+
+
+      {
+        uploadMessage && (
+
+          <div
+
+            className="
+
+            mt-5
+
+            rounded-2xl
+
+            p-4
+
+
+            bg-green-50
+
+            dark:bg-green-950
+
+
+            border
+
+            border-green-200
+
+            dark:border-green-800
+
+            "
+
+          >
+
+
+            <div
+
+              className="
+
+              flex
+
+              gap-2
+
+              items-center
+
+              "
+
+            >
+
+              <CheckCircle
+
+                size={18}
+
+                className="text-green-600"
+
+              />
+
+
+              <p
+
+                className="
+
+                text-sm
+
+                text-green-700
+
+                dark:text-green-300
+
+                "
+
+              >
+
+                {uploadMessage}
+
+              </p>
 
 
             </div>
@@ -292,211 +524,8 @@ function UploadBox({
 
 
 
-
-
-
-      {/* Upload Button */}
-
-
-
-      <button
-
-        onClick={uploadPDF}
-
-        disabled={
-          uploading || !file
-        }
-
-        className="
-          mt-5
-          w-full
-          flex
-          items-center
-          justify-center
-          gap-2
-          bg-blue-600
-          hover:bg-blue-700
-          disabled:bg-slate-400
-          text-white
-          py-3
-          rounded-2xl
-          font-semibold
-          transition
-        "
-
-      >
-
-        {
-          uploading
-
-          ?
-
-          <>
-            <Loader2
-              size={18}
-              className="animate-spin"
-            />
-
-            Processing...
-
-          </>
-
-          :
-
-          <>
-            <Upload size={18}/>
-            Upload PDF
-          </>
-
-        }
-
-
-      </button>
-
-
-
-
-
-
-
-
-      {/* Upload Message */}
-
-
-
-      {
-        uploadMessage && (
-
-          <div
-            className="
-              mt-5
-              flex
-              items-center
-              gap-2
-              bg-green-50
-              border
-              border-green-200
-              rounded-xl
-              p-3
-            "
-          >
-
-            <CheckCircle
-              size={18}
-              className="text-green-600"
-            />
-
-
-            <p className="text-sm text-green-700">
-              {uploadMessage}
-            </p>
-
-
-          </div>
-
-        )
-      }
-
-
-
-
-
-
-
-
-      {/* AI Pipeline */}
-
-
-
-      <div className="mt-8">
-
-
-        <h3 className="font-bold mb-4">
-          AI Pipeline
-        </h3>
-
-
-        <div className="space-y-4">
-
-
-          <InfoRow
-            icon={<Database size={18}/>}
-            title="Vector Database"
-            value="Qdrant"
-          />
-
-
-          <InfoRow
-            icon={<Brain size={18}/>}
-            title="Embedding"
-            value="Nomic"
-          />
-
-
-          <InfoRow
-            icon={<Cpu size={18}/>}
-            title="LLM"
-            value="Qwen"
-          />
-
-
-        </div>
-
-
-      </div>
-
-
-
     </div>
 
-  );
-
-}
-
-
-
-
-
-function InfoRow({
-  icon,
-  title,
-  value,
-}) {
-
-
-  return (
-
-    <div className="
-      flex
-      justify-between
-      items-center
-      text-sm
-    ">
-
-
-      <div className="
-        flex
-        items-center
-        gap-2
-      ">
-
-        {icon}
-
-        <span>
-          {title}
-        </span>
-
-
-      </div>
-
-
-
-      <span className="font-semibold">
-        {value}
-      </span>
-
-
-    </div>
 
   );
 

@@ -6,34 +6,32 @@ import UploadBox from "./components/UploadBox";
 import ChatBox from "./components/ChatBox";
 import ChatInput from "./components/ChatInput";
 
-import { useTheme } from "./hooks/useTheme.jsx";
 
 
 function App() {
 
-  const { dark } = useTheme();
 
+  const [question,setQuestion] = useState("");
 
-  const [question, setQuestion] = useState("");
+  const [messages,setMessages] = useState([]);
 
-  const [messages, setMessages] = useState([]);
+  const [loading,setLoading] = useState(false);
 
-  const [loading, setLoading] = useState(false);
+  const [file,setFile] = useState(null);
 
+  const [uploading,setUploading] = useState(false);
 
-  const [file, setFile] = useState(null);
-
-  const [uploading, setUploading] = useState(false);
-
-  const [uploadMessage, setUploadMessage] = useState("");
+  const [uploadMessage,setUploadMessage] = useState("");
 
 
 
 
-  const uploadPDF = async () => {
 
 
-    if (!file) {
+  const uploadPDF = async()=>{
+
+
+    if(!file){
 
       setUploadMessage(
         "Please select a PDF first."
@@ -45,7 +43,9 @@ function App() {
 
 
 
+
     const formData = new FormData();
+
 
     formData.append(
       "file",
@@ -58,38 +58,74 @@ function App() {
 
 
 
-    try {
+    try{
+
 
       const response = await fetch(
-        "http://127.0.0.1:8000/pdf/upload/",
+
+        "http://127.0.0.1:8000/pdf/upload",
+
         {
-          method: "POST",
-          body: formData,
+
+          method:"POST",
+
+          body:formData,
+
         }
+
       );
 
 
-      const data = await response.json();
+
+      const data =
+      await response.json();
+
+
+
+
+      if(!response.ok){
+
+        throw new Error(
+
+          data.detail ||
+          "Upload failed"
+
+        );
+
+      }
+
+
 
 
       setUploadMessage(
+
         data.message ||
         "PDF uploaded successfully."
+
       );
 
 
-    } catch {
+
+    }
+
+    catch(error){
 
 
       setUploadMessage(
+
+        error.message ||
         "Upload failed."
+
       );
 
 
     }
 
 
+
+
     setUploading(false);
+
 
   };
 
@@ -99,11 +135,14 @@ function App() {
 
 
 
-  const askQuestion = async () => {
 
 
-    if (!question.trim())
+  const askQuestion = async()=>{
+
+
+    if(!question.trim())
       return;
+
 
 
 
@@ -111,16 +150,21 @@ function App() {
 
 
 
-    setMessages((prev) => [
+
+    setMessages(prev=>[
 
       ...prev,
 
       {
-        role: "user",
-        text: userQuestion,
+
+        role:"user",
+
+        text:userQuestion,
+
       }
 
     ]);
+
 
 
 
@@ -131,59 +175,119 @@ function App() {
 
 
 
-    try {
+
+    try{
 
 
       const response = await fetch(
-        "http://127.0.0.1:8000/chat/",
-        {
-          method: "POST",
 
-          headers: {
+        "http://127.0.0.1:8000/chat/",
+
+        {
+
+          method:"POST",
+
+          headers:{
+
             "Content-Type":
             "application/json",
+
           },
 
-          body: JSON.stringify({
-            question: userQuestion,
+
+          body:JSON.stringify({
+
+            question:userQuestion,
+
           }),
 
         }
+
       );
 
 
 
-      const data = await response.json();
+
+
+      const data =
+      await response.json();
 
 
 
-      setMessages((prev) => [
+
+      if(!response.ok){
+
+        throw new Error(
+
+          data.detail ||
+          "Chat failed"
+
+        );
+
+      }
+
+
+
+
+
+
+
+      setMessages(prev=>[
 
         ...prev,
 
-        {
-          role: "ai",
-          text: data.answer,
-        }
-
-      ]);
-
-
-
-    } catch {
-
-
-      setMessages((prev) => [
-
-        ...prev,
 
         {
-          role: "ai",
+
+          role:"ai",
+
           text:
-          "Unable to connect to backend.",
+
+          data.answer ||
+
+          "No answer generated.",
+
+
+          sources:
+
+          data.sources || [],
+
         }
 
       ]);
+
+
+
+    }
+
+
+
+    catch(error){
+
+
+      setMessages(prev=>[
+
+        ...prev,
+
+
+        {
+
+          role:"ai",
+
+          text:
+
+          error.message ||
+
+          "Unable to generate AI response.",
+
+
+          sources:[],
+
+        }
+
+      ]);
+
+
 
     }
 
@@ -191,7 +295,12 @@ function App() {
 
     setLoading(false);
 
+
   };
+
+
+
+
 
 
 
@@ -203,22 +312,32 @@ function App() {
   return (
 
     <div
-      className={`
+
+      className="
+
         min-h-screen
+
         p-6
+
+
+        bg-slate-100
+
+        dark:bg-slate-950
+
+
+        text-slate-900
+
+        dark:text-white
+
+
         transition-all
+
         duration-300
 
-        ${
-          dark
-          ?
-          "bg-slate-950"
-          :
-          "bg-slate-100"
-        }
+      "
 
-      `}
     >
+
 
 
       <Navbar />
@@ -227,33 +346,47 @@ function App() {
 
 
 
+
       <div
+
         className="
+
           grid
+
           grid-cols-12
+
           gap-6
+
           mt-6
+
         "
+
       >
 
 
 
 
-        {/* Sidebar */}
+
 
 
         <div
+
           className="
-            col-span-12
-            lg:col-span-3
-            h-auto
-            lg:h-[85vh]
+
+            col-span-3
+
+            h-[85vh]
+
           "
+
         >
 
           <Sidebar
+
             file={file}
+
           />
+
 
         </div>
 
@@ -263,17 +396,22 @@ function App() {
 
 
 
-        {/* Main Area */}
 
 
         <div
+
           className="
-            col-span-12
-            lg:col-span-9
+
+            col-span-9
+
             grid
+
             grid-cols-12
+
             gap-6
+
           "
+
         >
 
 
@@ -281,17 +419,18 @@ function App() {
 
 
 
-          {/* Upload Box */}
-
-
           <div
+
             className="
-              col-span-12
-              xl:col-span-4
-              h-auto
-              xl:h-[85vh]
+
+              col-span-4
+
+              h-[85vh]
+
             "
+
           >
+
 
             <UploadBox
 
@@ -307,6 +446,8 @@ function App() {
 
             />
 
+
+
           </div>
 
 
@@ -317,39 +458,46 @@ function App() {
 
 
 
-          {/* Chat Workspace */}
-
-
           <div
 
-            className={`
-              col-span-12
-              xl:col-span-8
+            className="
 
-              rounded-3xl
-              shadow-lg
-              border
-              p-6
-              flex
-              flex-col
+              col-span-8
+
               h-[85vh]
 
-              transition
 
-              ${
-                dark
+              flex
 
-                ?
+              flex-col
 
-                "bg-slate-900 border-slate-700"
 
-                :
+              rounded-3xl
 
-                "bg-white border-slate-200"
 
-              }
+              p-6
 
-            `}
+
+              bg-white
+
+              dark:bg-slate-900
+
+
+              border
+
+              border-slate-200
+
+              dark:border-slate-700
+
+
+              shadow-lg
+
+
+              transition-all
+
+              duration-300
+
+            "
 
           >
 
@@ -367,6 +515,7 @@ function App() {
 
 
 
+
             <ChatInput
 
               question={question}
@@ -379,9 +528,7 @@ function App() {
 
 
 
-
           </div>
-
 
 
 
@@ -392,7 +539,10 @@ function App() {
 
 
 
+
+
       </div>
+
 
 
 
@@ -402,6 +552,7 @@ function App() {
   );
 
 }
+
 
 
 export default App;

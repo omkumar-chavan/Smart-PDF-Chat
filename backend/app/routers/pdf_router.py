@@ -1,7 +1,13 @@
 import os
 import uuid
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    HTTPException,
+)
+
 from loguru import logger
 
 from app.services.pdf_service import extract_text_from_pdf
@@ -30,11 +36,7 @@ async def upload_pdf(
     file: UploadFile = File(...)
 ):
 
-    file_path = None
-
     try:
-
-        # Validate file type
 
         if not file.filename.lower().endswith(".pdf"):
 
@@ -44,81 +46,103 @@ async def upload_pdf(
             )
 
 
-        # Create unique filename
-
         file_id = str(uuid.uuid4())
 
-        safe_filename = f"{file_id}_{file.filename}"
 
-        file_path = os.path.join(
-            UPLOAD_DIR,
-            safe_filename
+        filename = (
+            f"{file_id}_{file.filename}"
         )
 
 
-        # Save uploaded PDF
+        file_path = os.path.join(
+            UPLOAD_DIR,
+            filename
+        )
+
+
+        # Save PDF
 
         with open(
             file_path,
             "wb"
         ) as buffer:
 
-            content = await file.read()
+            buffer.write(
+                await file.read()
+            )
 
-            buffer.write(content)
 
-
-
-        logger.info(
+        logger.success(
             f"PDF saved: {file_path}"
         )
 
 
+        # Extract page wise text
 
-        # Extract text (pypdf + OCR fallback)
-
-        text = extract_text_from_pdf(
+        pages = extract_text_from_pdf(
             file_path
         )
 
 
-        if not text.strip():
+        if not pages:
 
             raise RuntimeError(
-                "No readable text found in PDF."
+                "No text extracted from PDF."
             )
 
 
         logger.success(
-            f"Extracted {len(text)} characters"
+            f"Extracted {len(pages)} pages"
         )
 
 
 
-        # Split text into chunks
+        # Create chunks with metadata
 
-        chunks = split_text(
-            text
-        )
+        all_chunks = []
+        metadata = []
 
 
-        if not chunks:
+        for page in pages:
+
+            chunks = split_text(
+                page["text"]
+            )
+
+
+            for chunk in chunks:
+
+                all_chunks.append(
+                    chunk
+                )
+
+
+                metadata.append(
+                    {
+                        "page": page["page"],
+                        "filename": file.filename
+                    }
+                )
+
+
+
+        if not all_chunks:
 
             raise RuntimeError(
-                "Text chunk generation failed."
+                "Chunk generation failed."
             )
 
 
         logger.success(
-            f"Generated {len(chunks)} chunks"
+            f"Generated {len(all_chunks)} chunks"
         )
 
 
 
-        # Generate embeddings
+        # Create embeddings
 
         embeddings = create_embeddings(
-            chunks
+            all_chunks
         )
 
 
@@ -129,24 +153,19 @@ async def upload_pdf(
             )
 
 
-        logger.success(
-            f"Generated {len(embeddings)} embeddings"
-        )
 
-
-
-        # Store vectors in Qdrant
+        # Store in Qdrant
 
         stored_count = store_vectors(
-            chunks,
-            embeddings
+            all_chunks,
+            embeddings,
+            metadata
         )
 
 
         logger.success(
-            f"Stored {stored_count} vectors in Qdrant"
+            f"Stored {stored_count} vectors"
         )
-
 
 
         return {
@@ -155,13 +174,14 @@ async def upload_pdf(
 
             "filename": file.filename,
 
-            "characters": len(text),
+            "pages": len(pages),
 
-            "chunks": len(chunks),
+            "chunks": len(all_chunks),
 
             "vectors": stored_count,
 
-            "message": "PDF uploaded and indexed successfully."
+            "message":
+                "PDF uploaded and indexed successfully."
 
         }
 
@@ -175,24 +195,12 @@ async def upload_pdf(
 
     except Exception as error:
 
-
         logger.exception(
-            f"PDF processing failed: {error}"
+            f"PDF upload failed: {error}"
         )
 
 
         raise HTTPException(
-
             status_code=500,
-
             detail=str(error)
-
         )
-
-
-
-    finally:
-
-        # Optional cleanup
-        # Keep uploaded PDFs if you want history
-        pass

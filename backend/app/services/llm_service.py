@@ -1,58 +1,22 @@
-from langchain_ollama import ChatOllama
+import requests
 from loguru import logger
 
-from app.config import settings
+
+OLLAMA_URL = "http://localhost:11434/api/generate"
+
+MODEL_NAME = "qwen3.5:4b"
 
 
 
-def get_llm():
-    """
-    Create Ollama chat model instance.
-    """
+def ask_llm(context, question):
 
-    return ChatOllama(
+    try:
 
-        model=settings.OLLAMA_CHAT_MODEL,
+        prompt = f"""
+You are Smart PDF Chat AI.
 
-        base_url=settings.OLLAMA_BASE_URL,
+Use this document context to answer.
 
-        temperature=0
-
-    )
-
-
-
-
-def ask_llm(
-    context: str,
-    question: str
-) -> str:
-    """
-    Generate answer using retrieved PDF context.
-    """
-
-    if not question.strip():
-
-        raise ValueError(
-            "Question cannot be empty."
-        )
-
-
-    if not context.strip():
-
-        raise ValueError(
-            "Context cannot be empty."
-        )
-
-
-    prompt = f"""
-You are an AI assistant for answering questions from uploaded documents.
-
-Rules:
-- Answer only using the provided context.
-- Do not use outside knowledge.
--If the context contains relevant information, answer using it even if wording is slightly different.
-Only say "I could not find the answer in the uploaded PDF." when there is absolutely no related information.
 Context:
 {context}
 
@@ -65,32 +29,43 @@ Answer:
 """
 
 
-    try:
-
-        llm = get_llm()
-
-
-        response = llm.invoke(
-            prompt
+        response = requests.post(
+            OLLAMA_URL,
+            json={
+                "model": MODEL_NAME,
+                "prompt": prompt,
+                "stream": False
+            },
+            timeout=180
         )
 
 
-        logger.success(
-            "LLM response generated successfully"
+        logger.info(
+            f"Ollama status: {response.status_code}"
         )
 
 
-        return response.content.strip()
+        logger.info(
+            f"Ollama raw response: {response.text}"
+        )
+
+
+        data = response.json()
+
+
+        if "response" in data:
+
+            return data["response"]
+
+
+        return "No answer generated."
 
 
 
-    except Exception as error:
+    except Exception as e:
 
         logger.exception(
-            f"LLM generation failed: {error}"
+            f"LLM failed: {e}"
         )
 
-
-        raise RuntimeError(
-            "Failed to generate AI response."
-        ) from error
+        return "AI generation failed."

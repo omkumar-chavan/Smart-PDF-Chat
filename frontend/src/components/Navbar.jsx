@@ -8,7 +8,9 @@ import {
 import { useTheme } from "../hooks/useTheme.jsx";
 
 
+
 function Navbar() {
+
 
   const {
     dark,
@@ -17,52 +19,98 @@ function Navbar() {
 
 
 
+
   return (
+
+
     <nav
-      className={`
+
+      className="
+
         rounded-3xl
-        shadow-sm
+
         px-6
+
         py-4
+
         flex
+
         items-center
+
         justify-between
+
+
         border
-        transition
-        ${
-          dark
-          ?
-          "bg-slate-900 border-slate-700"
-          :
-          "bg-white border-slate-200"
-        }
-      `}
+
+
+        bg-white
+
+        dark:bg-slate-900
+
+
+        border-slate-200
+
+        dark:border-slate-700
+
+
+        shadow-sm
+
+
+        transition-colors
+
+        duration-300
+
+      "
+
     >
 
 
 
-      {/* Brand */}
 
 
-      <div className="
-        flex
-        items-center
-        gap-3
-      ">
+      <div
+
+        className="
+
+          flex
+
+          items-center
+
+          gap-3
+
+        "
+
+      >
 
 
-        <div className="
-          bg-blue-600
-          p-3
-          rounded-2xl
-        ">
+
+
+        <div
+
+          className="
+
+            bg-blue-600
+
+            p-3
+
+            rounded-2xl
+
+          "
+
+        >
 
           <FileText
+
             size={24}
+
             className="text-white"
+
           />
 
         </div>
+
+
+
 
 
 
@@ -70,40 +118,52 @@ function Navbar() {
 
 
           <h1
-            className={`
+
+            className="
+
               text-xl
+
               font-bold
-              ${
-                dark
-                ?
-                "text-white"
-                :
-                "text-slate-800"
-              }
-            `}
+
+
+              text-slate-900
+
+              dark:text-white
+
+            "
+
           >
+
             Smart PDF Chat
+
+
           </h1>
 
 
 
           <p
-            className={`
+
+            className="
+
               text-sm
-              ${
-                dark
-                ?
-                "text-slate-400"
-                :
-                "text-slate-500"
-              }
-            `}
+
+
+              text-slate-500
+
+              dark:text-slate-400
+
+            "
+
           >
+
             AI Document Assistant
+
+
           </p>
 
 
         </div>
+
 
 
       </div>
@@ -113,40 +173,77 @@ function Navbar() {
 
 
 
-      {/* Right Section */}
 
 
-      <div className="
-        flex
-        items-center
-        gap-4
-      ">
+      <div
+
+        className="
+
+          flex
+
+          items-center
+
+          gap-4
+
+        "
+
+      >
 
 
-        {/* Theme Button */}
+
+
 
 
         <button
 
+
           onClick={toggleTheme}
 
+
           className="
+
             p-3
+
             rounded-full
+
+
             bg-slate-100
+
+            dark:bg-slate-800
+
+
+            text-slate-700
+
+            dark:text-yellow-400
+
+
             hover:bg-slate-200
+
+            dark:hover:bg-slate-700
+
+
             transition
+
           "
+
 
         >
 
+
           {
+
             dark
+
             ?
+
             <Sun size={20}/>
+
             :
+
             <Moon size={20}/>
+
           }
+
 
 
         </button>
@@ -156,49 +253,94 @@ function Navbar() {
 
 
 
-        {/* Status */}
 
 
 
-        <div className="
-          flex
-          items-center
-          gap-2
-          px-4
-          py-2
-          rounded-full
-          bg-green-50
-          border
-          border-green-200
-        ">
+        <div
+
+          className="
+
+            flex
+
+            items-center
+
+            gap-2
+
+            px-4
+
+            py-2
+
+            rounded-full
+
+
+            bg-green-50
+
+            dark:bg-green-950
+
+
+            border
+
+            border-green-200
+
+            dark:border-green-800
+
+          "
+
+        >
+
 
 
           <CircleCheck
+
             size={18}
+
             className="text-green-600"
+
           />
 
 
-          <span className="
-            text-sm
-            font-semibold
-            text-green-700
-          ">
+
+          <span
+
+            className="
+
+              text-sm
+
+              font-semibold
+
+
+              text-green-700
+
+              dark:text-green-300
+
+            "
+
+          >
+
             Local AI Running
+
+
           </span>
 
 
+
         </div>
+
+
+
 
 
       </div>
 
 
 
-
     </nav>
+
+
   );
+
 }
+
 
 
 export default Navbar;
