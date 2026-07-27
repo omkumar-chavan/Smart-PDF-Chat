@@ -5,7 +5,11 @@ import {
   Database,
   Brain,
   Cpu,
+  Loader2,
 } from "lucide-react";
+
+import { useTheme } from "../hooks/useTheme.jsx";
+
 
 function UploadBox({
   file,
@@ -14,215 +18,490 @@ function UploadBox({
   uploading,
   uploadMessage,
 }) {
-  return (
-    <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 h-full">
 
-      {/* Title */}
+
+  const { dark } = useTheme();
+
+
+
+  const handleFile = (selectedFile) => {
+
+    if (
+      selectedFile &&
+      selectedFile.type === "application/pdf"
+    ) {
+
+      setFile(selectedFile);
+
+    }
+
+  };
+
+
+
+  return (
+
+    <div
+      className={`
+        rounded-3xl
+        shadow-lg
+        border
+        p-6
+        h-full
+        transition
+
+        ${
+          dark
+          ?
+          "bg-slate-900 border-slate-700 text-white"
+          :
+          "bg-white border-slate-200 text-slate-900"
+        }
+
+      `}
+    >
+
+
+
+
+
+      {/* Header */}
+
 
       <div className="flex items-center gap-3 mb-6">
 
-        <div className="bg-blue-100 p-3 rounded-xl">
+
+        <div className="
+          bg-blue-100
+          p-3
+          rounded-2xl
+        ">
+
           <Upload
+            size={24}
             className="text-blue-600"
-            size={22}
           />
+
         </div>
 
+
+
         <div>
+
+
           <h2 className="text-xl font-bold">
             Documents
           </h2>
 
-          <p className="text-sm text-slate-500">
-            Upload your PDF
+
+          <p
+            className={`
+              text-sm
+              ${
+                dark
+                ?
+                "text-slate-400"
+                :
+                "text-slate-500"
+              }
+            `}
+          >
+            Upload PDF for AI analysis
           </p>
+
+
         </div>
+
 
       </div>
 
+
+
+
+
+
+
       {/* Upload Area */}
 
+
       <label
-        htmlFor="pdfFile"
-        className="
+
+        htmlFor="pdfUpload"
+
+        className={`
           flex
           flex-col
           items-center
           justify-center
+          h-48
+          rounded-3xl
           border-2
           border-dashed
-          border-slate-300
-          rounded-2xl
-          h-44
           cursor-pointer
-          hover:bg-slate-50
-          hover:border-blue-500
           transition
-        "
+
+          ${
+            dark
+
+            ?
+
+            "border-slate-600 hover:bg-slate-800"
+
+            :
+
+            "border-slate-300 hover:bg-slate-50"
+
+          }
+
+        `}
+
       >
 
+
         <Upload
-          size={42}
-          className="text-blue-600 mb-3"
+          size={32}
+          className="text-blue-600 mb-4"
         />
+
 
         <p className="font-semibold">
-          Click to Upload
+          Drop your PDF here
         </p>
 
-        <p className="text-sm text-slate-500">
-          PDF only
+
+        <p
+          className={`
+            text-sm
+            ${
+              dark
+              ?
+              "text-slate-400"
+              :
+              "text-slate-500"
+            }
+          `}
+        >
+          Click to browse
         </p>
+
+
 
         <input
-          id="pdfFile"
+
+          id="pdfUpload"
+
           type="file"
+
           accept=".pdf"
+
           className="hidden"
-          onChange={(e) =>
-            setFile(e.target.files[0])
+
+          onChange={(e)=>
+            handleFile(
+              e.target.files[0]
+            )
           }
+
         />
+
 
       </label>
 
+
+
+
+
+
+
       {/* Selected File */}
 
-      {file && (
 
-        <div className="mt-6 rounded-2xl bg-slate-50 border p-4">
 
-          <div className="flex gap-3">
+      {
+        file && (
 
-            <FileText
-              className="text-red-500"
-              size={26}
-            />
+          <div
+            className={`
+              mt-5
+              p-4
+              rounded-2xl
+              border
 
-            <div>
+              ${
+                dark
+                ?
+                "bg-slate-800 border-slate-700"
+                :
+                "bg-slate-50 border-slate-200"
+              }
 
-              <p className="font-semibold break-all">
-                {file.name}
-              </p>
+            `}
+          >
 
-              <p className="text-sm text-slate-500">
-                Ready for indexing
-              </p>
+
+            <div className="flex gap-3">
+
+
+              <FileText
+                size={28}
+                className="text-red-500"
+              />
+
+
+              <div className="min-w-0">
+
+
+                <p className="font-semibold truncate">
+                  {file.name}
+                </p>
+
+
+                <p
+                  className={`
+                    text-sm
+                    ${
+                      dark
+                      ?
+                      "text-slate-400"
+                      :
+                      "text-slate-500"
+                    }
+                  `}
+                >
+
+                  {(file.size / 1024 / 1024)
+                    .toFixed(2)} MB
+
+                  {" • Ready"}
+
+                </p>
+
+
+              </div>
+
 
             </div>
 
+
           </div>
 
-        </div>
+        )
+      }
 
-      )}
+
+
+
+
+
+
 
       {/* Upload Button */}
 
+
+
       <button
+
         onClick={uploadPDF}
-        disabled={uploading}
+
+        disabled={
+          uploading || !file
+        }
+
         className="
-          w-full
           mt-5
+          w-full
+          flex
+          items-center
+          justify-center
+          gap-2
           bg-blue-600
           hover:bg-blue-700
-          disabled:bg-blue-300
+          disabled:bg-slate-400
           text-white
-          rounded-2xl
           py-3
+          rounded-2xl
           font-semibold
           transition
         "
+
       >
-        {uploading
-          ? "Uploading..."
-          : "Upload PDF"}
+
+        {
+          uploading
+
+          ?
+
+          <>
+            <Loader2
+              size={18}
+              className="animate-spin"
+            />
+
+            Processing...
+
+          </>
+
+          :
+
+          <>
+            <Upload size={18}/>
+            Upload PDF
+          </>
+
+        }
+
+
       </button>
 
-      {/* Success */}
 
-      {uploadMessage && (
 
-        <div className="mt-5 flex gap-2 items-center bg-green-50 border border-green-200 rounded-xl p-3">
 
-          <CheckCircle
-            size={18}
-            className="text-green-600"
-          />
 
-          <p className="text-sm text-green-700">
-            {uploadMessage}
-          </p>
 
-        </div>
 
-      )}
 
-      {/* Statistics */}
+      {/* Upload Message */}
+
+
+
+      {
+        uploadMessage && (
+
+          <div
+            className="
+              mt-5
+              flex
+              items-center
+              gap-2
+              bg-green-50
+              border
+              border-green-200
+              rounded-xl
+              p-3
+            "
+          >
+
+            <CheckCircle
+              size={18}
+              className="text-green-600"
+            />
+
+
+            <p className="text-sm text-green-700">
+              {uploadMessage}
+            </p>
+
+
+          </div>
+
+        )
+      }
+
+
+
+
+
+
+
+
+      {/* AI Pipeline */}
+
+
 
       <div className="mt-8">
 
+
         <h3 className="font-bold mb-4">
-          AI Information
+          AI Pipeline
         </h3>
 
-        <div className="space-y-3">
 
-          <div className="flex justify-between items-center">
+        <div className="space-y-4">
 
-            <div className="flex gap-2 items-center">
 
-              <Database size={18} />
+          <InfoRow
+            icon={<Database size={18}/>}
+            title="Vector Database"
+            value="Qdrant"
+          />
 
-              <span>Vector DB</span>
 
-            </div>
+          <InfoRow
+            icon={<Brain size={18}/>}
+            title="Embedding"
+            value="Nomic"
+          />
 
-            <span className="font-semibold">
-              Qdrant
-            </span>
 
-          </div>
+          <InfoRow
+            icon={<Cpu size={18}/>}
+            title="LLM"
+            value="Qwen"
+          />
 
-          <div className="flex justify-between items-center">
-
-            <div className="flex gap-2 items-center">
-
-              <Brain size={18} />
-
-              <span>Embedding</span>
-
-            </div>
-
-            <span className="font-semibold">
-              Nomic
-            </span>
-
-          </div>
-
-          <div className="flex justify-between items-center">
-
-            <div className="flex gap-2 items-center">
-
-              <Cpu size={18} />
-
-              <span>LLM</span>
-
-            </div>
-
-            <span className="font-semibold">
-              Qwen 3.5
-            </span>
-
-          </div>
 
         </div>
 
+
       </div>
 
+
+
     </div>
+
   );
+
 }
+
+
+
+
+
+function InfoRow({
+  icon,
+  title,
+  value,
+}) {
+
+
+  return (
+
+    <div className="
+      flex
+      justify-between
+      items-center
+      text-sm
+    ">
+
+
+      <div className="
+        flex
+        items-center
+        gap-2
+      ">
+
+        {icon}
+
+        <span>
+          {title}
+        </span>
+
+
+      </div>
+
+
+
+      <span className="font-semibold">
+        {value}
+      </span>
+
+
+    </div>
+
+  );
+
+}
+
+
 
 export default UploadBox;
