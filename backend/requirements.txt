@@ -1,0 +1,26 @@
+# Web Framework & Server
+fastapi==0.115.0          # Async web framework for REST API development
+uvicorn[standard]==0.31.0 # High-performance ASGI application server
+python-multipart==0.0.12  # Form parsing support for multi-file PDF uploads
+sse-starlette==2.1.3      # Server-Sent Events implementation for real-time response streaming
+orjson==3.10.7            # High-performance JSON parsing and serialization
+aiofiles==24.1.0          # Asynchronous file operations for PDF disk handling
+
+# Configuration, Validation & Logging
+pydantic==2.9.2           # Modern data validation and schema enforcement
+pydantic-settings==2.5.2  # Settings management using environment variables
+python-dotenv==1.0.1      # Environment variable loading from .env file
+loguru==0.7.2             # Structured, production-grade logging utility
+
+# LangChain Ecosystem
+langchain==0.3.3          # Main orchestration framework for RAG
+langchain-community==0.3.2 # Integrations for document loaders
+langchain-ollama==0.2.0   # Official LangChain integration for Ollama LLM & Embeddings
+langchain-text-splitters==0.3.0 # Modular tools for context chunking
+
+# Vector Database & Document Processing
+qdrant-client==1.11.3     # Official async client for Qdrant Vector Database
+pypdf==5.0.1              # PDF parsing and raw text extraction
+
+# Networking & Utilities
+httpx==0.27.2             # Async HTTP client for low-level server calls
