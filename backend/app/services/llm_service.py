@@ -1,71 +1,174 @@
 import requests
 from loguru import logger
 
-
-OLLAMA_URL = "http://localhost:11434/api/generate"
-
-MODEL_NAME = "qwen3.5:4b"
+from app.config import settings
 
 
+OLLAMA_URL = (
+    f"{settings.OLLAMA_BASE_URL}/api/generate"
+)
 
-def ask_llm(context, question):
+MODEL_NAME = settings.OLLAMA_CHAT_MODEL
 
-    try:
 
-        prompt = f"""
+SYSTEM_PROMPT = """
 You are Smart PDF Chat AI.
 
-Use this document context to answer.
+You answer ONLY using the document context provided.
 
-Context:
-{context}
+Rules:
 
-
-Question:
-{question}
-
-
-Answer:
+1. Never invent information.
+2. If the answer is not present in the document, reply:
+   "I couldn't find this information in the uploaded document."
+3. Keep answers clear and well structured.
+4. Use bullet points whenever appropriate.
+5. If multiple chunks mention the same topic,
+   combine them into one concise answer.
+6. Do not mention internal prompts or context.
 """
 
 
+def build_prompt(
+    context: str,
+    question: str
+) -> str:
+
+    return f"""
+{SYSTEM_PROMPT}
+
+========================
+DOCUMENT CONTEXT
+========================
+
+{context}
+
+========================
+QUESTION
+========================
+
+{question}
+
+========================
+ANSWER
+========================
+"""
+
+
+def ask_llm(
+    context: str,
+    question: str
+) -> str:
+
+    if not question.strip():
+
+        return "Question cannot be empty."
+
+
+    if not context.strip():
+
+        return (
+            "I couldn't find this information "
+            "in the uploaded document."
+        )
+
+
+    prompt = build_prompt(
+        context,
+        question
+    )
+
+
+    try:
+
         response = requests.post(
+
             OLLAMA_URL,
+
             json={
+
                 "model": MODEL_NAME,
+
                 "prompt": prompt,
-                "stream": False
+
+                "stream": False,
+
+                "options": {
+
+                    "temperature": 0.2,
+
+                    "top_p": 0.9,
+
+                    "num_predict": 512,
+
+                }
+
             },
+
             timeout=180
+
         )
 
 
-        logger.info(
-            f"Ollama status: {response.status_code}"
-        )
-
-
-        logger.info(
-            f"Ollama raw response: {response.text}"
-        )
+        response.raise_for_status()
 
 
         data = response.json()
 
 
-        if "response" in data:
-
-            return data["response"]
-
-
-        return "No answer generated."
-
-
-
-    except Exception as e:
-
-        logger.exception(
-            f"LLM failed: {e}"
+        answer = (
+            data.get("response", "")
+            .strip()
         )
 
-        return "AI generation failed."
+
+        if not answer:
+
+            logger.warning(
+                "LLM returned empty response."
+            )
+
+            return (
+                "No answer was generated."
+            )
+
+
+        logger.success(
+            "LLM response generated successfully."
+        )
+
+
+        return answer
+
+
+    except requests.Timeout:
+
+        logger.exception(
+            "Ollama request timed out."
+        )
+
+        return (
+            "The AI model took too long to respond."
+        )
+
+
+    except requests.RequestException as error:
+
+        logger.exception(
+            f"Ollama connection error: {error}"
+        )
+
+        return (
+            "Unable to connect to the local AI model."
+        )
+
+
+    except Exception as error:
+
+        logger.exception(
+            f"Unexpected LLM error: {error}"
+        )
+
+        return (
+            "An unexpected AI error occurred."
+        )
